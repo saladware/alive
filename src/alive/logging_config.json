@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "colored": {
+      "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+      "datefmt": "%H:%M:%S",
+      "()": "alive.formatters.ColorFormatter"
+    },
+    "colored_no_name": {
+      "format": "%(asctime)s %(levelname)s %(message)s",
+      "datefmt": "%H:%M:%S",
+      "()": "alive.formatters.ColorFormatter"
+    },
+    "colored_request": {
+      "format": "%(asctime)s %(levelname)s %(message)s",
+      "datefmt": "%H:%M:%S",
+      "()": "alive.formatters.RequestColorFormatter"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "formatter": "colored"
+    },
+    "console_no_name": {
+      "class": "logging.StreamHandler",
+      "formatter": "colored_no_name"
+    },
+    "console_request": {
+      "class": "logging.StreamHandler",
+      "formatter": "colored_request"
+    }
+  },
+  "loggers": {
+    "": {
+      "level": "INFO",
+      "handlers": ["console"]
+    },
+    "alive": {
+      "level": "INFO",
+      "handlers": ["console_no_name"],
+      "propagate": false
+    },
+    "alive.http_server": {
+      "level": "INFO",
+      "handlers": ["console_request"],
+      "propagate": false
+    },
+    "watchfiles.main": {
+      "level": "ERROR"
+    }
+  }
+}
