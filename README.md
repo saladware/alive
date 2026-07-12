@@ -47,10 +47,7 @@ alive public/ --port 8080
 Embed the server directly into your Python scripts:
 
 ```python
-import asyncio
-
 from alive import LiveServer
-
 
 server = AliveServer("public/", port=8080)
 server.run()
