@@ -64,6 +64,7 @@ allow_zero_version = true
 build_command = """
 pip install uv
 uv lock --upgrade-package "$PACKAGE_NAME"
+git add uv.lock
 uv build
 """
 
