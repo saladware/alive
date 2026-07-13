@@ -62,6 +62,7 @@ testpaths = ["tests"]
 version_toml = ["pyproject.toml:project.version"]
 allow_zero_version = true
 build_command = """
+pip install uv
 uv lock --upgrade-package "$PACKAGE_NAME"
 uv build
 """
