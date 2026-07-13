@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from enum import IntEnum
 from logging import getLogger
 from pathlib import Path
@@ -16,7 +17,6 @@ from alive.responses import SSEMessage
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
-    from os import PathLike
 
 
 logger = getLogger(__name__)
@@ -39,7 +39,7 @@ class LiveServer(HTTPServer):
 
     def __init__(
         self,
-        root_dir: str | PathLike[str],
+        root_dir: str | os.PathLike[str],
         host: str = "localhost",
         port: int = 8000,
     ) -> None:
@@ -64,7 +64,7 @@ class LiveServer(HTTPServer):
         }
         self.fallback_handler = StaticFileHandler(self.root_dir, self.html_injection)
 
-    def watch(self, path: str | PathLike[str], action: AliveAction) -> None:
+    def watch(self, path: str | os.PathLike[str], action: AliveAction) -> None:
         """
         Register a path to be monitored with a specific callback action.
 
@@ -92,6 +92,18 @@ class LiveServer(HTTPServer):
         """
         await asyncio.gather(super().serve(), self.watch_root())
 
+    def _find_action(self, path: Path) -> AliveAction | None:
+        matches = sorted(
+            [
+                watch_path
+                for watch_path in self.watch_paths
+                if path == watch_path or path.is_relative_to(watch_path)
+            ],
+            key=lambda watch_path: len(watch_path.parts),
+            reverse=True,
+        )
+        return self.watch_paths[matches[0]] if matches else None
+
     async def _process_change(
         self,
         watchfiles_change: watchfiles.main.Change,
@@ -100,30 +112,23 @@ class LiveServer(HTTPServer):
         path = Path(path_str)
         change = Change(watchfiles_change)
 
-        rel_path = (
-            path.relative_to(Path.cwd()) if path.is_relative_to(Path.cwd()) else path
+        logger.info(
+            "File %s %sd",
+            path.relative_to(Path.cwd()) if path.is_relative_to(Path.cwd()) else path,
+            change.name.lower(),
         )
-        logger.info("File %s %sd", rel_path, change.name.lower())
 
-        matched_action: AliveAction | None = None
-        best_match_len = -1
-
-        for watch_path, action in self.watch_paths.items():
-            if path == watch_path or path.is_relative_to(watch_path):
-                match_len = len(watch_path.parts)
-                if match_len > best_match_len:
-                    best_match_len = match_len
-                    matched_action = action
-
-        if matched_action is not None:
-            await matched_action(change, path)
+        action = self._find_action(path)
+        if action:
+            await action(change, path)
 
     async def _notify_file_changed(
         self,
         change: Change,
-        path: str | PathLike[str],
+        path: str | os.PathLike[str],
     ) -> None:
-        url_path = f"/{Path(path).relative_to(self.root_dir)}"
+        url_path = await asyncio.to_thread(os.path.relpath, path, self.root_dir)
+        url_path = f"/{url_path}"
         tasks: list[Awaitable[None]] = []
         for listener in self.listeners:
             if url_path.endswith("/index.html"):
@@ -160,7 +165,7 @@ class AliveAction(Protocol):
     the specific change type and target path as positional-only arguments.
     """
 
-    async def __call__(self, change: Change, path: str | PathLike[str], /) -> None:
+    async def __call__(self, change: Change, path: str | os.PathLike[str], /) -> None:
         """
         Asynchronously handle a file system change event.
 
