@@ -1,6 +1,6 @@
 [project]
 name = "alive-server"
-version = "0.0.0"
+version = "0.1.0"
 license = "MIT"
 description = "Async static HTTP development server with state-preserving live reloads"
 readme = "README.md"
