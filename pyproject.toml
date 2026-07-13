@@ -1,6 +1,7 @@
 [project]
 name = "alive"
 version = "0.1.0"
+license = "MIT"
 description = "Async static HTTP development server with state-preserving live reloads"
 readme = "README.md"
 authors = [{ name = "Evgeny Goryachev", email = "saladware46@gmail.com" }]
