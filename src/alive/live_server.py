@@ -9,7 +9,7 @@ import watchfiles
 
 from alive.handlers import SSERequestHandler, StaticFileHandler, handle_reload_script
 from alive.http_server import HTTPServer
-from alive.protocols import AliveAction, Change, FileChange, StrPath
+from alive.protocols import AliveAction, Change, StrPath
 from alive.responses import SSEMessage
 
 if TYPE_CHECKING:
@@ -57,19 +57,20 @@ class LiveServer(HTTPServer):
         path = Path(path_str)
         change = Change(watchfiles_change)
         if path.is_relative_to(self.root_dir):
-            file_change = FileChange(change, f"/{path.relative_to(self.root_dir)}")
-            await self._notify_file_changed(file_change)
+            await self._notify_file_changed(
+                change, f"/{path.relative_to(self.root_dir)}"
+            )
         rel_path = path.relative_to(Path.cwd())
         logger.info("File %s %sd", rel_path, change.name.lower())
 
-    async def _notify_file_changed(self, file_change: FileChange) -> None:
+    async def _notify_file_changed(self, change: Change, path: StrPath) -> None:
         tasks: list[Awaitable[None]] = []
         for listener in self.listeners:
-            path = str(file_change.path)
+            path = str(path)
             if path.endswith("/index.html"):
                 path = path[:-10]
             message = SSEMessage(
-                event=file_change.change.name.lower(),
+                event=change.name.lower(),
                 payload=path,
             )
             tasks.append(listener.put(message))
