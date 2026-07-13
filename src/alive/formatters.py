@@ -1,3 +1,5 @@
+"""Color-coded logging formatters for system messages and HTTP requests."""
+
 from __future__ import annotations
 
 import logging
@@ -17,6 +19,15 @@ RESET = "\033[0m"
 
 
 class ColorFormatter(logging.Formatter):
+    """
+    Logging formatter that adds ANSI color codes to standard level names.
+
+    Attributes:
+        colors: A dictionary mapping logging severity levels (e.g., logging.INFO)
+            to their corresponding ANSI escape color strings.
+
+    """
+
     colors: ClassVar = {
         logging.DEBUG: CYAN,
         logging.INFO: GREEN,
@@ -26,10 +37,31 @@ class ColorFormatter(logging.Formatter):
     }
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:  # noqa: N802
+        """
+        Format the creation time of the LogRecord with a grey color code.
+
+        Args:
+            record: The LogRecord instance being processed.
+            datefmt: The specific date/time format string. Defaults to None.
+
+        Returns:
+            A string containing the colored and formatted timestamp.
+
+        """
         formatted_time = super().formatTime(record, datefmt)
         return f"{GREY}{formatted_time}{RESET}"
 
     def format(self, record: logging.LogRecord) -> str:
+        """
+        Format the specified record as text, coloring the aligned level name.
+
+        Args:
+            record: The LogRecord instance to format.
+
+        Returns:
+            The formatted log message string with embedded color escape codes.
+
+        """
         log_color = self.colors.get(record.levelno, RESET)
         orig_levelname = record.levelname
         aligned_levelname = f"{orig_levelname:<8}"
@@ -40,6 +72,20 @@ class ColorFormatter(logging.Formatter):
 
 
 class RequestColorFormatter(ColorFormatter):
+    """
+    Logging formatter designed specifically for HTTP requests and responses.
+
+    Extends ColorFormatter to extract, format, and color-code HTTP methods
+    and HTTP status codes attached to the LogRecord.
+
+    Attributes:
+        method_colors: A dictionary mapping HTTP method names (e.g., 'GET')
+            to ANSI color codes.
+        status_colors: A dictionary mapping HTTP status code categories
+            (e.g., 200, 400) to ANSI color codes.
+
+    """
+
     method_colors: ClassVar[dict[str, str]] = {
         "GET": GREEN,
         "POST": YELLOW,
@@ -55,6 +101,19 @@ class RequestColorFormatter(ColorFormatter):
     }
 
     def format(self, record: logging.LogRecord) -> str:
+        """
+        Format the record by injecting colored HTTP metadata into the log message.
+
+        Extracts optional 'request' and 'status' attributes from the record
+        to build a standardized and readable HTTP log line.
+
+        Args:
+            record: The LogRecord instance to format.
+
+        Returns:
+            The formatted log string containing colored HTTP transaction details.
+
+        """
         req_str = self._format_request(getattr(record, "request", None))
         status_str = self._format_status(getattr(record, "status", None))
 

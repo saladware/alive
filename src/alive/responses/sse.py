@@ -1,3 +1,5 @@
+"""Server-Sent Events (SSE) HTTP response implementation for real-time streaming."""
+
 import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -11,11 +13,33 @@ logger = getLogger(__name__)
 
 
 class SSEMessage(NamedTuple):
+    """
+    An individual Server-Sent Event message structure.
+
+    Attributes:
+        payload: A string containing the data to be transmitted.
+        event: An optional string defining the specific event type.
+
+    """
+
     payload: str
     event: str | None = None
 
 
 class SSEResponse(Response):
+    """
+    An HTTP response that implements Server-Sent Events (SSE) protocol.
+
+    Maintains a persistent connection to stream real-time updates from a shared
+    listener pool and automatically sends heartbeats to prevent connection timeouts.
+
+    Attributes:
+        heartbeat_interval: An integer interval in seconds for sending heartbeats.
+        queue: A unique message queue designated for this specific response instance.
+        listeners: A shared set tracking active client message queues.
+
+    """
+
     heartbeat_interval = 5
 
     def __init__(
@@ -24,6 +48,19 @@ class SSEResponse(Response):
         status: HTTPStatus = HTTPStatus.OK,
         headers: dict[str, str] | None = None,
     ) -> None:
+        """
+        Initialize the SSEResponse instance and registers it to the listener pool.
+
+        Args:
+            listeners:
+                A mutable set of asyncio.Queue instances where new events are
+                broadcast.
+            status:
+                HTTP status code for the response. Defaults to HTTPStatus.OK.
+            headers:
+                Optional dictionary of additional HTTP headers.
+
+        """
         self.queue: asyncio.Queue[SSEMessage] = asyncio.Queue()
         self.listeners = listeners
         self.listeners.add(self.queue)
@@ -33,6 +70,16 @@ class SSEResponse(Response):
         self.headers["connection"] = "keep-alive"
 
     async def write(self, writer: asyncio.StreamWriter) -> None:
+        """
+        Start the persistent event loop streaming messages to the client.
+
+        Sends a comment heartbeat if no messages are received within the
+        heartbeat_interval. Automatically handles client deregistration upon exit.
+
+        Args:
+            writer: Stream writer for the client connection.
+
+        """
         await self.head(writer)
         async with self._listener_session():
             while not writer.is_closing():
@@ -53,7 +100,6 @@ class SSEResponse(Response):
     @asynccontextmanager
     async def _listener_session(self) -> AsyncGenerator[None]:
         """Manage the lifecycle of an SSE listener registration."""
-
         logger.debug("SSE connection opened. total listeners: %d", len(self.listeners))
         try:
             yield

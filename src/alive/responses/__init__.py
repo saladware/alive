@@ -1,3 +1,5 @@
+"""HTTP response models, file-streaming components, and SSE mechanisms."""
+
 from alive.responses.base import BytesResponse as BytesResponse
 from alive.responses.base import EmptyResponse as EmptyResponse
 from alive.responses.base import ErrorResponse as ErrorResponse

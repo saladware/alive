@@ -1,3 +1,5 @@
+"""Command-line interface entry point for launching the live-reload HTTP server."""
+
 from __future__ import annotations
 
 import json
@@ -14,6 +16,13 @@ logger = getLogger(__name__)
 
 
 def app() -> None:
+    """
+    Parse command-line arguments and starts the live HTTP server.
+
+    This function initializes the logging configuration from a local JSON file,
+    sets up the CLI argument parser, handles optional debug logging activation,
+    and runs the `LiveServer` blockingly.
+    """
     logging_file = Path(__file__).parent / "logging_config.json"
     with logging_file.open("r", encoding="utf-8") as file_obj:
         dictConfig(json.load(file_obj))

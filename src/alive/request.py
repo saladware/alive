@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class HTTPMethod(str, Enum):
-    """HTTP Methods"""
+    """HTTP Methods."""
 
     GET = "GET"
     HEAD = "HEAD"
@@ -30,7 +30,8 @@ class HTTPMethod(str, Enum):
 
 
 class Request(NamedTuple):
-    """Represents a parsed HTTP request.
+    """
+    Represents a parsed HTTP request.
 
     Attributes:
         method: The HTTP method used (e.g., GET, POST).
@@ -38,6 +39,7 @@ class Request(NamedTuple):
         query: Query string parameters mapped to lists of values.
         headers: Lowercase header names mapped to their values.
         body: The raw byte content of the request body.
+
     """
 
     method: HTTPMethod
@@ -48,7 +50,8 @@ class Request(NamedTuple):
 
     @classmethod
     async def parse(cls, reader: StreamReader) -> Request:
-        """Parses an incoming HTTP request from a stream reader.
+        """
+        Parse an incoming HTTP request from a stream reader.
 
         Args:
             reader: The async stream reader to read the request from.
@@ -59,6 +62,7 @@ class Request(NamedTuple):
         Raises:
             ConnectionError: If the client disconnects before sending data.
             ValueError: If the request is malformed.
+
         """
         request_line = await reader.readline()
         if not request_line:
