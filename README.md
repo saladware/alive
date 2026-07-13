@@ -55,7 +55,7 @@ server.run()
 
 > [!tip]
 > **Async Context Support**
-> 
+>
 > If you are already inside an existing event loop, use `await server.serve()` instead of `server.run()` to avoid blocking your application.
 
 ## 📝 License
