@@ -2,8 +2,7 @@ name: Continuous Delivery
 
 on:
   push:
-    branches:
-      - master
+    branches: ["master", "main", "feat/*", "fix/*", "perf/*"]
 
 permissions:
   contents: read
