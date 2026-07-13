@@ -18,6 +18,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "flake8-pyproject>=1.2.4",
     "mypy>=2.2.0",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
@@ -34,3 +35,19 @@ warn_unreachable = true
 select = ["ALL"]
 ignore = ["COM812", "D203", "D212"]
 external = ["WPS"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.flake8]
+select = ["WPS"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+addopts = """
+    --strict-markers
+    --cov=src
+"""
+
+testpaths = ["tests"]
