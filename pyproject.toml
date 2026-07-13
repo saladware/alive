@@ -1,7 +1,7 @@
 [project]
 name = "alive"
 version = "0.1.0"
-description = "Add your description here"
+description = "Async static HTTP development server with state-preserving live reloads"
 readme = "README.md"
 authors = [{ name = "Evgeny Goryachev", email = "saladware46@gmail.com" }]
 requires-python = ">=3.10"
@@ -17,6 +17,11 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = ["mypy>=2.2.0", "ty>=0.0.58", "wemake-python-styleguide>=1.6.2"]
+
+[tool.mypy]
+packages = ["alive"]
+strict = true
+warn_unreachable = true
 
 [tool.ruff.lint]
 select = ["ALL"]
