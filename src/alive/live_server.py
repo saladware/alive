@@ -99,27 +99,38 @@ class LiveServer(HTTPServer):
     ) -> None:
         path = Path(path_str)
         change = Change(watchfiles_change)
-        if path.is_relative_to(self.root_dir):
-            await self._notify_file_changed(
-                change,
-                f"/{path.relative_to(self.root_dir)}",
-            )
-        rel_path = path.relative_to(Path.cwd())
+
+        rel_path = (
+            path.relative_to(Path.cwd()) if path.is_relative_to(Path.cwd()) else path
+        )
         logger.info("File %s %sd", rel_path, change.name.lower())
+
+        matched_action: AliveAction | None = None
+        best_match_len = -1
+
+        for watch_path, action in self.watch_paths.items():
+            if path == watch_path or path.is_relative_to(watch_path):
+                match_len = len(watch_path.parts)
+                if match_len > best_match_len:
+                    best_match_len = match_len
+                    matched_action = action
+
+        if matched_action is not None:
+            await matched_action(change, path)
 
     async def _notify_file_changed(
         self,
         change: Change,
         path: str | PathLike[str],
     ) -> None:
+        url_path = f"/{Path(path).relative_to(self.root_dir)}"
         tasks: list[Awaitable[None]] = []
         for listener in self.listeners:
-            path = str(path)
-            if path.endswith("/index.html"):
-                path = path[:-10]
+            if url_path.endswith("/index.html"):
+                url_path = url_path[:-10]
             message = SSEMessage(
                 event=change.name.lower(),
-                payload=path,
+                payload=url_path,
             )
             tasks.append(listener.put(message))
         await asyncio.gather(*tasks)
