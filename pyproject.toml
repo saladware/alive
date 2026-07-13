@@ -1,6 +1,6 @@
 [project]
-name = "alive"
-version = "0.1.0"
+name = "alive-server"
+version = "0.0.0"
 license = "MIT"
 description = "Async static HTTP development server with state-preserving live reloads"
 readme = "README.md"
@@ -27,6 +27,10 @@ dev = [
     "wemake-python-styleguide>=1.6.2",
 ]
 
+[tool.uv.build-backend]
+module-name = "alive"
+module-root = "src"
+
 [tool.mypy]
 packages = ["alive"]
 strict = true
@@ -52,3 +56,30 @@ addopts = """
 """
 
 testpaths = ["tests"]
+
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+allow_zero_version = true
+build_command = """
+uv lock --upgrade-package "$PACKAGE_NAME"
+uv build
+"""
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+    '''chore(?:\([^)]*?\))?: .+''',
+    '''ci(?:\([^)]*?\))?: .+''',
+    '''refactor(?:\([^)]*?\))?: .+''',
+    '''style(?:\([^)]*?\))?: .+''',
+    '''test(?:\([^)]*?\))?: .+''',
+    '''build\((?!deps\): .+)''',
+    '''Initial [Cc]ommit.*''',
+]
+[tool.semantic_release.branches.alpha]
+match = "^(feat|fix|perf)/.+"
+prerelease = true
+prerelease_token = "alpha"
+[tool.semantic_release.branches.main]
+match = "(main|master)"
+prerelease_token = "rc"
+prerelease = false
