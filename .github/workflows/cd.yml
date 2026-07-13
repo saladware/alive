@@ -2,8 +2,7 @@ name: Continuous Delivery
 
 on:
   push:
-    branches:
-      - master
+    branches: ["master", "main", "feat/*", "fix/*", "perf/*"]
 
 permissions:
   contents: read
@@ -20,14 +19,14 @@ jobs:
 
     steps:
       - name: Setup | Checkout Repository on Release Branch
-        uses: actions/checkout@v6  
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref_name }}
 
       - name: Setup | Force release branch to be at workflow sha
         run: |
           git reset --hard ${{ github.sha }}
-      
+
       - name: Setup | Install uv
         uses: astral-sh/setup-uv@v5
 
@@ -74,7 +73,6 @@ jobs:
         with:
           name: distribution-artifacts
           path: dist
-
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
